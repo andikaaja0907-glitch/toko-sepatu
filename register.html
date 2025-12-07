@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register - SneakStore</title>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    body {
+        font-family: Poppins, sans-serif;
+        background: #f3f4f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .box {
+        background: #fff;
+        padding: 28px;
+        width: 350px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; margin-bottom: 20px; }
+    input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+    }
+    button {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        background: #1f2937;
+        color: #fff;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .link {
+        text-align: center;
+        margin-top: 12px;
+    }
+    a { color: #1f2937; font-weight: bold; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Register</h2>
+
+    <input type="text" id="username" placeholder="Buat username">
+    <input type="password" id="password" placeholder="Buat password">
+
+    <button onclick="register()">Daftar</button>
+
+    <div class="link">
+        Sudah punya akun? <a href="login.html">Login</a>
+    </div>
+</div>
+
+<script>
+function register() {
+    let user = document.getElementById("username").value;
+    let pass = document.getElementById("password").value;
+
+    if (user === "" || pass === "") {
+        Swal.fire("Gagal", "Semua kolom harus diisi!", "error");
+        return;
+    }
+
+    let data = { username: user, password: pass };
+    localStorage.setItem("userData", JSON.stringify(data));
+
+    Swal.fire({
+        icon: "success",
+        title: "Registrasi Berhasil!",
+        text: "Silakan login",
+        confirmButtonColor: "#1f2937"
+    }).then(() => {
+        window.location.href = "login.html";
+    });
+}
+</script>
+
+</body>
+</html>

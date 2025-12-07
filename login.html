@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - SneakStore</title>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    body {
+        font-family: Poppins, sans-serif;
+        background: #e5e7eb;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .box {
+        background: #fff;
+        padding: 28px;
+        width: 350px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; margin-bottom: 20px; }
+    input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+    }
+    button {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        background: #1f2937;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .link {
+        text-align: center;
+        margin-top: 12px;
+    }
+    a { color: #1f2937; font-weight: bold; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Login</h2>
+
+    <input type="text" id="username" placeholder="Masukkan username">
+    <input type="password" id="password" placeholder="Masukkan password">
+
+    <button onclick="login()">Login</button>
+
+    <div class="link">
+        Belum punya akun? <a href="register.html">Register</a>
+    </div>
+</div>
+
+<script>
+function login() {
+    let user = document.getElementById("username").value;
+    let pass = document.getElementById("password").value;
+
+    let data = JSON.parse(localStorage.getItem("userData"));
+
+    if (!data) {
+        Swal.fire("Gagal", "Akun belum terdaftar!", "error");
+        return;
+    }
+
+    if (user === data.username && pass === data.password) {
+        localStorage.setItem("loggedIn", "true");
+
+        Swal.fire({
+            icon: "success",
+            title: "Login Berhasil!",
+            confirmButtonColor: "#1f2937",
+            timer: 1500
+        }).then(() => {
+            window.location.href = "halaman.html";
+        });
+
+    } else {
+        Swal.fire("Error", "Username atau Password salah!", "error");
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SneakStore - Toko Sepatu Online</title>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    background: #f5f5f5;
+    color: #111827;
+  }
+
+  header {
+    background: #1f2937;
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .brand {
+    font-weight: bold;
+    font-size: 20px;
+  }
+
+  .search-bar {
+    background: #fff;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    width: 280px;
+  }
+
+  .search-bar input {
+    border: none;
+    outline: none;
+    flex: 1;
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  .cart-btn {
+    background: #fff;
+    color: #1f2937;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .categories {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  .category {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 8px 16px;
+    border-radius: 999px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .category.active {
+    background: #1f2937;
+    color: #fff;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: 0.2s;
+  }
+
+  .card:hover {
+    transform: scale(1.03);
+  }
+
+  .card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+
+  .card-body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .name {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .price {
+    color: #1f2937;
+    font-weight: bold;
+  }
+
+  .btn {
+    border: none;
+    background: #1f2937;
+    color: white;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+
+  .btn:hover {
+    background: #111827;
+  }
+
+  footer {
+    text-align: center;
+    padding: 12px;
+    color: #6b7280;
+    background: #fff;
+    font-size: 14px;
+    margin-top: 20px;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal.active {
+    display: flex;
+  }
+
+  .modal-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .cart-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .cart-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .subtotal {
+    margin-top: 12px;
+    font-weight: bold;
+    color: #1f2937;
+  }
+</style>
+</head>
+<body>
+
+<!-- Proteksi Login -->
+<script>
+if (localStorage.getItem("loggedIn") !== "true") {
+  Swal.fire({
+    icon: "warning",
+    title: "Akses Ditolak!",
+    text: "Silakan login untuk melanjutkan.",
+    confirmButtonColor: "#1f2937"
+  }).then(() => {
+    window.location.href = "login.html";
+  });
+}
+</script>
+
+<header>
+  <div class="brand">👟 SneakStore</div>
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Cari sepatu...">
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="cart-btn" onclick="toggleCart()">🛒 <span id="cart-count">0</span></button>
+    <button class="cart-btn" style="background:#fef2f2;color:#b91c1c;" onclick="logout()">🚪 Logout</button>
+  </div>
+</header>
+
+<div class="categories" id="category-bar">
+  <div class="category active" onclick="filterCategory('All')">Semua</div>
+  <div class="category" onclick="filterCategory('Sneakers')">Sneakers</div>
+  <div class="category" onclick="filterCategory('Running')">Running</div>
+  <div class="category" onclick="filterCategory('Basket')">Basket</div>
+  <div class="category" onclick="filterCategory('Slip On')">Slip On</div>
+</div>
+
+<div class="grid" id="product-grid"></div>
+
+<footer>© 2025 SneakStore - Semua kebutuhan sepatu Anda</footer>
+
+<!-- Modal Keranjang -->
+<div class="modal" id="cart-modal">
+  <div class="modal-content">
+    <h3>Keranjang Belanja</h3>
+    <div id="cart-items"></div>
+    <div class="subtotal">Subtotal: <span id="cart-subtotal">Rp 0</span></div>
+    <button class="btn" onclick="checkout()">Checkout</button>
+    <button class="btn" style="background:#6b7280" onclick="toggleCart()">Tutup</button>
+  </div>
+</div>
+
+<script>
+const products = [
+  {id:1, name:'Nike Air Force 1', category:'Sneakers', price:1200000, img:'NikeAirForce1.jpeg'},
+  {id:2, name:'Adidas Superstar', category:'Sneakers', price:1100000, img:'AdidasSuperstar.jpeg'},
+  {id:3, name:'Nike Air Zoom Pegasus', category:'Running', price:1500000, img:'NikeAirZoomPegasus.jpeg'},
+  {id:4, name:'Adidas Ultraboost 22', category:'Running', price:1800000, img:'AdidasUltraboost22.jpeg'},
+  {id:5, name:'Nike Lebron 20', category:'Basket', price:2900000, img:'NikeLebron20.jpeg'},
+  {id:6, name:'Adidas Harden Vol 6', category:'Basket', price:2600000, img:'AdidasHarden6.jpeg'},
+  {id:7, name:'Vans Slip On Checkerboard', category:'Slip On', price:800000, img:'VansSlipOnCheckerboard.jpeg'}
+];
+
+let cart = {};
+let selectedCategory = 'All';
+
+function formatRupiah(n) {
+  return n.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
+}
+
+function renderProducts() {
+  const grid = document.getElementById('product-grid');
+  const search = document.getElementById('search').value.toLowerCase();
+  grid.innerHTML = '';
+  const filtered = products.filter(p =>
+    (selectedCategory === 'All' || p.category === selectedCategory) &&
+    (p.name.toLowerCase().includes(search))
+  );
+  filtered.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img src="${p.img}" alt="${p.name}">
+      <div class="card-body">
+        <div class="name">${p.name}</div>
+        <div style="font-size:13px;color:#6b7280">${p.category}</div>
+        <div class="price">${formatRupiah(p.price)}</div>
+        <button class="btn" onclick="addToCart(${p.id})">Tambah</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function filterCategory(cat) {
+  selectedCategory = cat;
+  document.querySelectorAll('.category').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.category:nth-child(${cat === 'All' ? 1 : (['Sneakers','Running','Basket','Slip On'].indexOf(cat) + 2)})`).classList.add('active');
+  renderProducts();
+}
+
+
+// cart[key] = { qty: 1, size: 42, id:1 }
+
+function addToCart(id) {
+  const product = products.find(p => p.id === id);
+
+  Swal.fire({
+    title: 'Pilih Ukuran Sepatu',
+    input: 'select',
+    inputOptions: {
+      '38': 'Ukuran 38',
+      '39': 'Ukuran 39',
+      '40': 'Ukuran 40',
+      '41': 'Ukuran 41',
+      '42': 'Ukuran 42',
+      '43': 'Ukuran 43'
+    },
+    inputPlaceholder: 'Pilih ukuran',
+    showCancelButton: true,
+    confirmButtonText: 'Tambahkan',
+    confirmButtonColor: '#1f2937',
+    cancelButtonColor: '#6b7280'
+  }).then((result) => {
+    if (!result.isConfirmed || !result.value) return;
+
+    const size = result.value;
+    const key = id + "-" + size;
+
+    if (!cart[key]) {
+      cart[key] = { id: id, size: size, qty: 1 };
+    } else {
+      cart[key].qty++;
+    }
+
+    updateCart();
+  });
+}
+
+function updateCart() {
+  const itemsDiv = document.getElementById('cart-items');
+  itemsDiv.innerHTML = '';
+
+  let subtotal = 0;
+  let totalQty = 0;
+
+  for (const key in cart) {
+    const item = cart[key];
+    const product = products.find(p => p.id == item.id);
+
+    subtotal += product.price * item.qty;
+    totalQty += item.qty;
+
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+    div.innerHTML = `
+      <img src="${product.img}">
+      <div style="flex:1">
+        <div>${product.name} (Ukuran ${item.size})</div>
+        <div style="font-size:12px;color:#6b7280">${item.qty}x ${formatRupiah(product.price)}</div>
+      </div>
+      <button onclick="removeFromCart('${key}')">❌</button>
+    `;
+    itemsDiv.appendChild(div);
+  }
+
+  document.getElementById('cart-count').innerText = totalQty;
+  document.getElementById('cart-subtotal').innerText = formatRupiah(subtotal);
+}
+
+function removeFromCart(key) {
+  delete cart[key];
+  updateCart();
+}
+
+
+function toggleCart() {
+  document.getElementById('cart-modal').classList.toggle('active');
+}
+
+function checkout() {
+
+  Swal.fire({
+    title: 'Alamat Penerima',
+    input: 'textarea',
+    inputPlaceholder: 'Masukkan alamat lengkap penerima pesanan...',
+    showCancelButton: true,
+    confirmButtonText: 'Lanjutkan',
+    cancelButtonText: 'Batal',
+    confirmButtonColor: '#1f2937',
+  }).then((alamatResult) => {
+
+    if (!alamatResult.isConfirmed || !alamatResult.value) return;
+
+    const alamatPenerima = alamatResult.value;
+
+    Swal.fire({
+      title: 'Pilih Metode Pembayaran',
+      input: 'select',
+      inputOptions: {
+        'E-Wallet': {
+          dana: 'DANA',
+          ovo: 'OVO',
+          gopay: 'GoPay',
+          shopeepay: 'ShopeePay'
+        }
+      },
+      inputPlaceholder: 'Pilih salah satu e-wallet',
+      confirmButtonText: 'Lanjut Bayar',
+      showCancelButton: true,
+      confirmButtonColor: '#1f2937',
+      cancelButtonColor: '#6b7280'
+    }).then((result) => {
+
+      if (!result.isConfirmed || !result.value) return;
+
+      const metode = result.value;
+
+      Swal.fire({
+        title: 'Memproses Pembayaran...',
+        text: 'Mohon tunggu sebentar',
+        timer: 1500,
+        didOpen: () => Swal.showLoading()
+      }).then(() => {
+
+        const qrImages = {
+          dana: 'qr-dana.jpeg',
+          ovo: 'qr-ovo.jpeg',
+          gopay: 'qr-gopay.jpeg',
+          shopeepay: 'qr-shopeepay.jpeg'
+        };
+
+        Swal.fire({
+          title: 'Scan Barcode Pembayaran',
+          html: `
+            <p>Silakan scan barcode di bawah ini untuk menyelesaikan pembayaran:</p>
+            <img src="${qrImages[metode]}" style="width:260px;margin-top:10px;border-radius:10px;">
+            <p style="margin-top:15px;font-size:14px;color:#374151">
+              <b>Metode:</b> ${metode.toUpperCase()}<br>
+              <b>Alamat Penerima:</b><br>${alamatPenerima.replace(/\n/g,'<br>')}
+            </p>
+          `,
+          confirmButtonText: 'Selesai',
+          confirmButtonColor: '#1f2937'
+        }).then(() => {
+
+          Swal.fire({
+            icon: "success",
+            title: "Pembayaran Berhasil!",
+            text: "Pesanan Anda sedang diproses 👟",
+            confirmButtonColor: "#1f2937"
+            }).then(() => {
+  // 🔥 KOSONGKAN KERANJANG SETELAH BAYAR
+  cart = {};
+  updateCart();
+  toggleCart(); // Tutup modal
+
+          });
+
+        });
+      });
+
+    });
+
+  });
+
+}
+
+// 🔥 LOGOUT FIXED
+function logout() {
+  Swal.fire({
+    title: "Yakin ingin logout?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#1f2937",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Ya",
+    cancelButtonText: "Batal"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      localStorage.removeItem("loggedIn");
+      Swal.fire({
+        icon: "info",
+        title: "Logout Berhasil",
+        timer: 1500,
+        showConfirmButton: false
+      }).then(() => {
+        window.location.href = "login.html";
+      });
+    }
+  });
+}
+  
+document.getElementById('search').addEventListener('input', renderProducts);
+renderProducts();
+</script>
+</body>
+</html>
